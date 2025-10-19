@@ -15,7 +15,8 @@ async function initializeData() {
     console.log('🚀 Initializing Speed Rivals monetization data...');
 
     // Connect to MongoDB
-    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/speed-rivals', {
+    const dbURI = process.env.NODE_ENV === 'production' ? process.env.MONGODB_URI_PROD : process.env.MONGODB_URI;
+    await mongoose.connect(dbURI || 'mongodb://localhost:27017/speed-rivals', {
       serverSelectionTimeoutMS: 5000,
       connectTimeoutMS: 5000
     });
