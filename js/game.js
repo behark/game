@@ -12,6 +12,7 @@ class Game {
         this.clock = new THREE.Clock();
         this.keys = {};
         this.socket = null;
+        this.uiStateCache = { speed: -1, lap: -1, position: -1, leaderboardHTML: '', aiStatusHTML: '', powerUpHTML: '' };
 
         // Performance Integration System
         this.performanceIntegration = null;
@@ -346,8 +347,8 @@ class Game {
         const carRotation = this.car.getRotation();
 
         // Follow camera behind the car
-        const cameraDistance = 15;
-        const cameraHeight = 6;
+        const cameraDistance = CONFIG.GAME.CAMERA_DISTANCE;
+        const cameraHeight = CONFIG.GAME.CAMERA_HEIGHT;
 
         const cameraX = carPosition.x - Math.sin(carRotation.y) * cameraDistance;
         const cameraZ = carPosition.z - Math.cos(carRotation.y) * cameraDistance;
@@ -363,12 +364,22 @@ class Game {
     updateUI() {
         if (!this.car) return;
 
-        this.gameState.speed = Math.abs(this.car.getSpeed()) * 3.6; // Convert to km/h
+        this.gameState.speed = Math.round(Math.abs(this.car.getSpeed()) * 3.6); // Convert to km/h
 
-        document.getElementById('speedValue').textContent =
-            Math.round(this.gameState.speed);
-        document.getElementById('lapValue').textContent = this.gameState.lap;
-        document.getElementById('positionValue').textContent = this.gameState.position;
+        if (this.gameState.speed !== this.uiStateCache.speed) {
+            document.getElementById('speedValue').textContent = this.gameState.speed;
+            this.uiStateCache.speed = this.gameState.speed;
+        }
+
+        if (this.gameState.lap !== this.uiStateCache.lap) {
+            document.getElementById('lapValue').textContent = this.gameState.lap;
+            this.uiStateCache.lap = this.gameState.lap;
+        }
+
+        if (this.gameState.position !== this.uiStateCache.position) {
+            document.getElementById('positionValue').textContent = this.gameState.position;
+            this.uiStateCache.position = this.gameState.position;
+        }
 
         // Update AI-specific UI
         if (this.aiManager) {
@@ -555,44 +566,31 @@ class Game {
     }
 
     displayLeaderboard(leaderboard) {
-        // Create or update leaderboard display
         let leaderboardElement = document.getElementById('leaderboard');
-
         if (!leaderboardElement) {
             leaderboardElement = document.createElement('div');
             leaderboardElement.id = 'leaderboard';
             leaderboardElement.style.cssText = `
-                position: absolute;
-                top: 120px;
-                right: 20px;
-                background: rgba(0, 0, 0, 0.8);
-                color: white;
-                padding: 15px;
-                border-radius: 10px;
-                font-family: 'Arial', sans-serif;
-                font-size: 14px;
-                min-width: 200px;
-                z-index: 1000;
+                position: absolute; top: 120px; right: 20px; background: rgba(0, 0, 0, 0.8);
+                color: white; padding: 15px; border-radius: 10px; font-family: 'Arial', sans-serif;
+                font-size: 14px; min-width: 200px; z-index: 1000;
             `;
             document.body.appendChild(leaderboardElement);
         }
 
         let html = '<div style="font-weight: bold; margin-bottom: 10px; color: #ffff00;">🏆 Leaderboard</div>';
-
-        leaderboard.slice(0, 6).forEach((entry, index) => {
+        leaderboard.slice(0, 6).forEach((entry) => {
             const isPlayer = entry.type === 'player';
             const icon = isPlayer ? '🏎️' : this.getPersonalityIcon(entry.personality);
             const name = isPlayer ? 'You' : `${entry.personality.charAt(0).toUpperCase() + entry.personality.slice(1)} AI`;
             const color = isPlayer ? '#00ff00' : '#ffffff';
-
-            html += `
-                <div style="margin: 5px 0; color: ${color}; ${isPlayer ? 'font-weight: bold;' : ''}">
-                    ${entry.position}. ${icon} ${name}
-                </div>
-            `;
+            html += `<div style="margin: 5px 0; color: ${color}; ${isPlayer ? 'font-weight: bold;' : ''}">${entry.position}. ${icon} ${name}</div>`;
         });
 
-        leaderboardElement.innerHTML = html;
+        if (html !== this.uiStateCache.leaderboardHTML) {
+            leaderboardElement.innerHTML = html;
+            this.uiStateCache.leaderboardHTML = html;
+        }
     }
 
     getPersonalityIcon(personality) {
@@ -607,24 +605,14 @@ class Game {
     }
 
     updateAIStatus() {
-        // Create or update AI status display
         let statusElement = document.getElementById('ai-status');
-
         if (!statusElement) {
             statusElement = document.createElement('div');
             statusElement.id = 'ai-status';
             statusElement.style.cssText = `
-                position: absolute;
-                top: 20px;
-                left: 20px;
-                background: rgba(0, 0, 0, 0.8);
-                color: white;
-                padding: 15px;
-                border-radius: 10px;
-                font-family: 'Arial', sans-serif;
-                font-size: 12px;
-                min-width: 180px;
-                z-index: 1000;
+                position: absolute; top: 20px; left: 20px; background: rgba(0, 0, 0, 0.8);
+                color: white; padding: 15px; border-radius: 10px; font-family: 'Arial', sans-serif;
+                font-size: 12px; min-width: 180px; z-index: 1000;
             `;
             document.body.appendChild(statusElement);
         }
@@ -635,56 +623,35 @@ class Game {
                 <div style="font-weight: bold; margin-bottom: 8px; color: #00ffff;">🤖 AI Status</div>
                 <div>Difficulty: <span style="color: #ffff00;">${status.difficulty}</span></div>
                 <div>Opponents: <span style="color: #ffff00;">${status.aiCount}</span></div>
-                <div>Rubber Band: <span style="color: ${status.rubberBandEnabled ? '#00ff00' : '#ff0000'};">
-                    ${status.rubberBandEnabled ? 'ON' : 'OFF'}
-                </span></div>
-                <div>Adaptive: <span style="color: ${status.adaptiveDifficulty ? '#00ff00' : '#ff0000'};">
-                    ${status.adaptiveDifficulty ? 'ON' : 'OFF'}
-                </span></div>
-                <div style="margin-top: 8px; font-size: 11px; color: #cccccc;">
-                    Wins: ${status.playerPerformance.wins} | Losses: ${status.playerPerformance.losses}
-                </div>
+                <div>Rubber Band: <span style="color: ${status.rubberBandEnabled ? '#00ff00' : '#ff0000'};">${status.rubberBandEnabled ? 'ON' : 'OFF'}</span></div>
+                <div>Adaptive: <span style="color: ${status.adaptiveDifficulty ? '#00ff00' : '#ff0000'};">${status.adaptiveDifficulty ? 'ON' : 'OFF'}</span></div>
+                <div style="margin-top: 8px; font-size: 11px; color: #cccccc;">Wins: ${status.playerPerformance.wins} | Losses: ${status.playerPerformance.losses}</div>
             `;
-            statusElement.innerHTML = html;
+            if (html !== this.uiStateCache.aiStatusHTML) {
+                statusElement.innerHTML = html;
+                this.uiStateCache.aiStatusHTML = html;
+            }
         }
     }
 
     updatePowerUpUI() {
-        // Create or update power-up display
         let powerUpElement = document.getElementById('power-up-display');
-
         if (!powerUpElement) {
             powerUpElement = document.createElement('div');
             powerUpElement.id = 'power-up-display';
             powerUpElement.style.cssText = `
-                position: absolute;
-                bottom: 120px;
-                left: 20px;
-                background: rgba(0, 0, 0, 0.8);
-                color: white;
-                padding: 15px;
-                border-radius: 10px;
-                font-family: 'Arial', sans-serif;
-                font-size: 14px;
-                min-width: 200px;
-                z-index: 1000;
+                position: absolute; bottom: 120px; left: 20px; background: rgba(0, 0, 0, 0.8);
+                color: white; padding: 15px; border-radius: 10px; font-family: 'Arial', sans-serif;
+                font-size: 14px; min-width: 200px; z-index: 1000;
             `;
             document.body.appendChild(powerUpElement);
         }
 
         let html = '<div style="font-weight: bold; margin-bottom: 8px; color: #ff00ff;">⚡ Power-ups</div>';
-
         if (this.car && this.car.hasPowerUp) {
             const powerUpConfig = this.powerUpSystem.powerUpTypes[this.car.powerUpType];
             if (powerUpConfig) {
-                html += `
-                    <div style="color: #00ff00; margin-bottom: 5px;">
-                        Ready: ${powerUpConfig.name}
-                    </div>
-                    <div style="font-size: 12px; color: #cccccc;">
-                        Press Q to use
-                    </div>
-                `;
+                html += `<div style="color: #00ff00; margin-bottom: 5px;">Ready: ${powerUpConfig.name}</div><div style="font-size: 12px; color: #cccccc;">Press Q to use</div>`;
             }
         } else {
             html += '<div style="color: #888888;">No power-up</div>';
@@ -695,19 +662,17 @@ class Game {
             if (activePowerUps.length > 0) {
                 html += '<div style="margin-top: 10px; font-size: 12px; color: #ffff00;">Active Effects:</div>';
                 activePowerUps.forEach(powerUp => {
-                    html += `<div style="font-size: 11px; color: #ffffff;">
-                        ${powerUp.type} (${powerUp.duration.toFixed(1)}s)
-                    </div>`;
+                    html += `<div style="font-size: 11px; color: #ffffff;">${powerUp.type} (${powerUp.duration.toFixed(1)}s)</div>`;
                 });
             }
-
             const powerUpCount = this.powerUpSystem.getPowerUpCount();
-            html += `<div style="margin-top: 8px; font-size: 11px; color: #cccccc;">
-                Available on track: ${powerUpCount}
-            </div>`;
+            html += `<div style="margin-top: 8px; font-size: 11px; color: #cccccc;">Available on track: ${powerUpCount}</div>`;
         }
 
-        powerUpElement.innerHTML = html;
+        if (html !== this.uiStateCache.powerUpHTML) {
+            powerUpElement.innerHTML = html;
+            this.uiStateCache.powerUpHTML = html;
+        }
     }
 
     gameLoop() {

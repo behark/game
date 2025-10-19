@@ -6,15 +6,16 @@ class Car {
         this.body = null;
         this.wheels = [];
         this.wheelBodies = [];
+        this.vehicle = null;
 
         // Car properties
-        this.maxSpeed = 30;
-        this.acceleration = 15;
-        this.brakeForce = 20;
+        this.maxSpeed = CONFIG.CAR.MAX_SPEED;
+        this.acceleration = CONFIG.CAR.ACCELERATION;
+        this.brakeForce = CONFIG.CAR.BRAKE_FORCE;
         this.steerAngle = 0;
-        this.maxSteerAngle = Math.PI / 6; // 30 degrees
-        this.wheelRadius = 0.4;
-        this.wheelWidth = 0.3;
+        this.maxSteerAngle = CONFIG.CAR.MAX_STEER_ANGLE;
+        this.wheelRadius = CONFIG.CAR.WHEEL_RADIUS;
+        this.wheelWidth = CONFIG.CAR.WHEEL_WIDTH;
 
         // Car state
         this.currentSpeed = 0;
@@ -31,8 +32,7 @@ class Car {
         console.log('🚗 Creating car...');
 
         this.createMesh();
-        this.createPhysicsBody();
-        this.createWheels();
+        this.createPhysics();
 
         console.log('✅ Car created successfully!');
     }
@@ -129,7 +129,7 @@ class Car {
         this.scene.add(this.mesh);
     }
 
-    createPhysicsBody() {
+    createPhysics() {
         // Car body physics
         const carShape = new CANNON.Box(new CANNON.Vec3(2, 0.75, 4));
         this.body = new CANNON.Body({ mass: 1000 });
@@ -140,23 +140,21 @@ class Car {
         this.vehicle = new CANNON.RaycastVehicle({
             chassisBody: this.body,
         });
-    }
 
-    createWheels() {
         const wheelOptions = {
             radius: this.wheelRadius,
             directionLocal: new CANNON.Vec3(0, -1, 0),
-            suspensionStiffness: 30,
-            suspensionRestLength: 0.3,
-            frictionSlip: 5,
-            dampingRelaxation: 2.3,
-            dampingCompression: 4.4,
-            maxSuspensionForce: 100000,
-            rollInfluence: 0.01,
+            suspensionStiffness: CONFIG.PHYSICS.SUSPENSION_STIFFNESS,
+            suspensionRestLength: CONFIG.PHYSICS.SUSPENSION_REST_LENGTH,
+            frictionSlip: CONFIG.PHYSICS.FRICTION_SLIP,
+            dampingRelaxation: CONFIG.PHYSICS.DAMPING_RELAXATION,
+            dampingCompression: CONFIG.PHYSICS.DAMPING_COMPRESSION,
+            maxSuspensionForce: CONFIG.PHYSICS.MAX_SUSPENSION_FORCE,
+            rollInfluence: CONFIG.PHYSICS.ROLL_INFLUENCE,
             axleLocal: new CANNON.Vec3(0, 0, 1),
             chassisConnectionPointLocal: new CANNON.Vec3(1, 0, 1),
-            maxSuspensionTravel: 0.3,
-            customSlidingRotationalSpeed: -30,
+            maxSuspensionTravel: 0.3, // This can remain for now
+            customSlidingRotationalSpeed: CONFIG.PHYSICS.CUSTOM_SLIDING_ROTATIONAL_SPEED,
             useCustomSlidingRotationalSpeed: true,
         };
 
@@ -184,6 +182,10 @@ class Car {
             this.scene.add(wheelMesh);
         });
     }
+
+    /* createPhysicsBody method removed, will be replaced by createPhysics */
+
+    /* createWheels method removed, will be replaced by createPhysics */
 
     accelerate(direction) {
         this.engineForce = direction * this.acceleration * 1000; // Convert to a reasonable force value

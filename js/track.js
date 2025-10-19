@@ -5,7 +5,7 @@ class Track {
         this.trackMesh = null;
         this.trackBody = null;
         this.checkpoints = [];
-        this.trackWidth = 12;
+        this.trackWidth = CONFIG.TRACK.WIDTH;
         this.trackLength = 200;
     }
 
@@ -49,8 +49,8 @@ class Track {
     createTrackSurface() {
         // Create oval track shape
         const trackShape = new THREE.Shape();
-        const radius = 40;
-        const straightLength = 60;
+        const radius = CONFIG.TRACK.RADIUS;
+        const straightLength = CONFIG.TRACK.STRAIGHT_LENGTH;
 
         // Start at bottom straight
         trackShape.moveTo(-straightLength / 2, -radius);
