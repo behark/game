@@ -1,0 +1,223 @@
+{
+  "name": "Speed Rivals - Mobile Racing",
+  "short_name": "Speed Rivals",
+  "description": "Professional mobile racing experience with advanced touch controls and offline gameplay",
+  "start_url": "/mobile-racing.html",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "landscape-primary",
+  "theme_color": "#1e3c72",
+  "background_color": "#2a5298",
+  "lang": "en-US",
+  "dir": "ltr",
+
+  "icons": [
+    {
+      "src": "/icons/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+
+  "screenshots": [
+    {
+      "src": "/screenshots/mobile-racing-1.png",
+      "sizes": "540x720",
+      "type": "image/png",
+      "platform": "narrow",
+      "label": "Mobile racing with touch controls"
+    },
+    {
+      "src": "/screenshots/mobile-racing-2.png",
+      "sizes": "720x540",
+      "type": "image/png",
+      "platform": "wide",
+      "label": "Landscape racing mode"
+    },
+    {
+      "src": "/screenshots/mobile-racing-3.png",
+      "sizes": "540x720",
+      "type": "image/png",
+      "platform": "narrow",
+      "label": "Settings and customization"
+    }
+  ],
+
+  "categories": ["games", "entertainment", "sports"],
+  "iarc_rating_id": "e84b072d-71b3-4d3e-86ae-31a8ce4e53b7",
+
+  "related_applications": [
+    {
+      "platform": "play",
+      "url": "https://play.google.com/store/apps/details?id=com.speedrivals.mobile",
+      "id": "com.speedrivals.mobile"
+    },
+    {
+      "platform": "itunes",
+      "url": "https://apps.apple.com/app/speed-rivals-mobile/id123456789"
+    }
+  ],
+  "prefer_related_applications": false,
+
+  "shortcuts": [
+    {
+      "name": "Quick Race",
+      "short_name": "Race",
+      "description": "Start a quick race immediately",
+      "url": "/mobile-racing.html?mode=quick",
+      "icons": [
+        {
+          "src": "/icons/shortcut-race.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Time Trial",
+      "short_name": "Trial",
+      "description": "Practice and set your best lap times",
+      "url": "/mobile-racing.html?mode=trial",
+      "icons": [
+        {
+          "src": "/icons/shortcut-trial.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Multiplayer",
+      "short_name": "Multi",
+      "description": "Race against other players online",
+      "url": "/mobile-racing.html?mode=multiplayer",
+      "icons": [
+        {
+          "src": "/icons/shortcut-multiplayer.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Settings",
+      "short_name": "Settings",
+      "description": "Customize controls and performance",
+      "url": "/mobile-racing.html?panel=settings",
+      "icons": [
+        {
+          "src": "/icons/shortcut-settings.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
+
+  "share_target": {
+    "action": "/mobile-racing.html",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
+
+  "protocol_handlers": [
+    {
+      "protocol": "speedrivals",
+      "url": "/mobile-racing.html?action=%s"
+    }
+  ],
+
+  "file_handlers": [
+    {
+      "action": "/mobile-racing.html",
+      "accept": {
+        "application/speedrivals-replay": [".spr"],
+        "application/speedrivals-track": [".spt"]
+      }
+    }
+  ],
+
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  },
+
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "minimal-ui",
+    "browser"
+  ],
+
+  "handle_links": "preferred",
+
+  "id": "speed-rivals-mobile",
+  "version": "1.0.0",
+
+  "permissions": [
+    "notifications",
+    "vibration",
+    "camera",
+    "microphone",
+    "geolocation",
+    "accelerometer",
+    "gyroscope",
+    "background-sync",
+    "persistent-storage"
+  ],
+
+  "features": [
+    "cross-origin-isolated",
+    "high-resolution-timing"
+  ]
+}

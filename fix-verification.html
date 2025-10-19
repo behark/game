@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fix Verification Test</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #1a1a2e;
+            color: #eee;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 { color: #00ff88; }
+        .test-section {
+            background: #16213e;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            border-left: 4px solid #00ff88;
+        }
+        .pass { color: #00ff88; font-weight: bold; }
+        .fail { color: #ff4444; font-weight: bold; }
+        .warn { color: #ffaa00; font-weight: bold; }
+        pre {
+            background: #0f1419;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            color: #61dafb;
+        }
+        .console-output {
+            background: #000;
+            color: #0f0;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        button {
+            background: #00ff88;
+            color: #1a1a2e;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #00cc66;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Bug Fix Verification Tests</h1>
+    
+    <div class="test-section">
+        <h2>Test 1: THREE.js Loading</h2>
+        <p>Checking if THREE.js loads correctly...</p>
+        <div id="test1-result">Running...</div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 2: CANNON.js Loading</h2>
+        <p>Checking if CANNON.js loads correctly...</p>
+        <div id="test2-result">Running...</div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 3: Car.getPosition() Returns THREE.Vector3</h2>
+        <p>Testing if car position is a THREE.Vector3 with .clone() method...</p>
+        <div id="test3-result">Running...</div>
+        <button onclick="runCarTest()">Run Car Test</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 4: Visual Effects with Car Position</h2>
+        <p>Testing if visual effects can use car position...</p>
+        <div id="test4-result">Running...</div>
+        <button onclick="runVisualEffectsTest()">Run Visual Effects Test</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Console Output Monitor</h2>
+        <p>Live console messages (errors and warnings):</p>
+        <div class="console-output" id="console-monitor">
+            <div>Monitoring console...</div>
+        </div>
+        <button onclick="clearConsole()">Clear Console</button>
+    </div>
+
+    <!-- Load libraries -->
+    <script src="/libs/three.min.js"></script>
+    <script src="/libs/cannon.min.js"></script>
+    
+    <!-- Load game scripts -->
+    <script src="js/car.js"></script>
+    <script src="js/track.js"></script>
+    <script src="js/visualEffects.js"></script>
+
+    <script>
+        // Console monitoring
+        const consoleMonitor = document.getElementById('console-monitor');
+        let consoleMessages = [];
+
+        // Intercept console methods
+        const originalConsole = {
+            log: console.log,
+            warn: console.warn,
+            error: console.error
+        };
+
+        function addConsoleMessage(type, args) {
+            const timestamp = new Date().toLocaleTimeString();
+            const message = Array.from(args).map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+            ).join(' ');
+            
+            const color = type === 'error' ? '#ff4444' : type === 'warn' ? '#ffaa00' : '#0f0';
+            const line = `<div style="color: ${color}">[${timestamp}] [${type.toUpperCase()}] ${message}</div>`;
+            
+            consoleMessages.push(line);
+            if (consoleMessages.length > 50) consoleMessages.shift();
+            
+            consoleMonitor.innerHTML = consoleMessages.join('');
+            consoleMonitor.scrollTop = consoleMonitor.scrollHeight;
+        }
+
+        console.log = function(...args) {
+            originalConsole.log.apply(console, args);
+            addConsoleMessage('log', args);
+        };
+
+        console.warn = function(...args) {
+            originalConsole.warn.apply(console, args);
+            // Filter THREE.js deprecation warning
+            const msg = args[0];
+            if (typeof msg !== 'string' || !msg.includes('build/three')) {
+                addConsoleMessage('warn', args);
+            }
+        };
+
+        console.error = function(...args) {
+            originalConsole.error.apply(console, args);
+            addConsoleMessage('error', args);
+        };
+
+        function clearConsole() {
+            consoleMessages = [];
+            consoleMonitor.innerHTML = '<div>Console cleared...</div>';
+        }
+
+        // Test 1: THREE.js
+        function test1() {
+            const result = document.getElementById('test1-result');
+            if (typeof THREE !== 'undefined') {
+                result.innerHTML = `<span class="pass">✅ PASS</span> - THREE.js loaded (r${THREE.REVISION})`;
+                console.log('✅ Test 1 PASSED: THREE.js loaded');
+                return true;
+            } else {
+                result.innerHTML = '<span class="fail">❌ FAIL</span> - THREE.js not loaded';
+                console.error('❌ Test 1 FAILED: THREE.js not loaded');
+                return false;
+            }
+        }
+
+        // Test 2: CANNON.js
+        function test2() {
+            const result = document.getElementById('test2-result');
+            if (typeof CANNON !== 'undefined') {
+                result.innerHTML = '<span class="pass">✅ PASS</span> - CANNON.js loaded';
+                console.log('✅ Test 2 PASSED: CANNON.js loaded');
+                return true;
+            } else {
+                result.innerHTML = '<span class="fail">❌ FAIL</span> - CANNON.js not loaded';
+                console.error('❌ Test 2 FAILED: CANNON.js not loaded');
+                return false;
+            }
+        }
+
+        // Test 3: Car.getPosition()
+        function runCarTest() {
+            const result = document.getElementById('test3-result');
+            try {
+                // Create minimal scene and world
+                const scene = new THREE.Scene();
+                const world = new CANNON.World();
+                world.gravity.set(0, -9.82, 0);
+
+                // Create a car
+                const car = new Car(scene, world);
+                
+                // Get position
+                const position = car.getPosition();
+                
+                // Check if it's a THREE.Vector3
+                if (position instanceof THREE.Vector3) {
+                    // Try to clone and add
+                    const cloned = position.clone();
+                    const added = cloned.add(new THREE.Vector3(1, 2, 3));
+                    
+                    result.innerHTML = `
+                        <span class="pass">✅ PASS</span> - Car.getPosition() returns THREE.Vector3<br>
+                        <pre>Position: (${position.x.toFixed(2)}, ${position.y.toFixed(2)}, ${position.z.toFixed(2)})
+Clone works: ✅
+Add works: ✅
+Result: (${added.x.toFixed(2)}, ${added.y.toFixed(2)}, ${added.z.toFixed(2)})</pre>
+                    `;
+                    console.log('✅ Test 3 PASSED: Car.getPosition() returns THREE.Vector3 with working clone() and add()');
+                } else {
+                    result.innerHTML = `<span class="fail">❌ FAIL</span> - Position is not THREE.Vector3: ${position.constructor.name}`;
+                    console.error('❌ Test 3 FAILED: Position type:', position.constructor.name);
+                }
+            } catch (error) {
+                result.innerHTML = `<span class="fail">❌ FAIL</span> - Error: ${error.message}<br><pre>${error.stack}</pre>`;
+                console.error('❌ Test 3 FAILED:', error);
+            }
+        }
+
+        // Test 4: Visual Effects
+        function runVisualEffectsTest() {
+            const result = document.getElementById('test4-result');
+            try {
+                // Create minimal setup
+                const scene = new THREE.Scene();
+                const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+                const renderer = new THREE.WebGLRenderer();
+                const world = new CANNON.World();
+                world.gravity.set(0, -9.82, 0);
+
+                // Create visual effects
+                const visualEffects = new VisualEffects(scene, camera, renderer);
+                
+                // Create a car
+                const car = new Car(scene, world);
+                const carPosition = car.getPosition();
+                const carRotation = car.getRotation();
+                
+                // Try creating engine glow (this was failing before)
+                visualEffects.createEngineGlow(carPosition, 0.8);
+                
+                // Try creating exhaust
+                visualEffects.createEngineExhaust(carPosition, carRotation, 50, 0.8);
+                
+                result.innerHTML = `
+                    <span class="pass">✅ PASS</span> - Visual effects work with car position<br>
+                    <pre>Engine glow created: ✅
+Engine exhaust created: ✅
+No errors thrown: ✅</pre>
+                `;
+                console.log('✅ Test 4 PASSED: Visual effects work correctly');
+            } catch (error) {
+                result.innerHTML = `<span class="fail">❌ FAIL</span> - Error: ${error.message}<br><pre>${error.stack}</pre>`;
+                console.error('❌ Test 4 FAILED:', error);
+            }
+        }
+
+        // Run basic tests on load
+        window.addEventListener('load', () => {
+            console.log('🔧 Starting bug fix verification tests...');
+            setTimeout(() => {
+                test1();
+                test2();
+                console.log('ℹ️ Click buttons to run Car and Visual Effects tests');
+            }, 100);
+        });
+    </script>
+</body>
+</html>

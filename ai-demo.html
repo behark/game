@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speed Rivals AI Demo - Intelligent Racing Opponents</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #gameCanvas {
+            display: block;
+            cursor: crosshair;
+        }
+
+        #ui {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            color: white;
+            font-size: 18px;
+            z-index: 100;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.7);
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            background: rgba(0,0,0,0.8);
+            padding: 20px;
+            border-radius: 15px;
+            font-size: 14px;
+            z-index: 100;
+            text-align: center;
+            min-width: 600px;
+        }
+
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 24px;
+            z-index: 200;
+            text-align: center;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .highlight {
+            color: #00ff00;
+            font-weight: bold;
+        }
+
+        .title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #ffff00;
+            text-align: center;
+        }
+
+        .section {
+            margin: 10px 0;
+            padding: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+        }
+
+        .key {
+            display: inline-block;
+            background: #333;
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin: 2px;
+            font-weight: bold;
+        }
+
+        .ai-info {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.95);
+            color: white;
+            padding: 30px;
+            border-radius: 20px;
+            font-size: 16px;
+            z-index: 300;
+            max-width: 800px;
+            text-align: center;
+            border: 2px solid #00ffff;
+        }
+
+        .ai-personality {
+            display: inline-block;
+            margin: 5px;
+            padding: 8px 12px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .feature-list {
+            text-align: left;
+            margin: 20px 0;
+        }
+
+        .feature-list li {
+            margin: 8px 0;
+            list-style: none;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .feature-list li:before {
+            content: "🚀";
+            position: absolute;
+            left: 0;
+        }
+
+        #startButton {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 25px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: transform 0.2s;
+        }
+
+        #startButton:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="loading">Loading AI Racing Demo...</div>
+
+        <div id="ai-info" class="ai-info">
+            <div class="title">🤖 Speed Rivals AI Demo</div>
+            <p>Experience racing against intelligent AI opponents with distinct personalities!</p>
+
+            <div style="margin: 20px 0;">
+                <div class="ai-personality">😤 <strong>Aggressive</strong> - Rams and blocks</div>
+                <div class="ai-personality">🎯 <strong>Tactical</strong> - Strategic power-up usage</div>
+                <div class="ai-personality">🛡️ <strong>Defensive</strong> - Clean, consistent racing</div>
+                <div class="ai-personality">🎲 <strong>Unpredictable</strong> - Random surprising moves</div>
+                <div class="ai-personality">🏆 <strong>Professional</strong> - Optimal F1-style racing</div>
+            </div>
+
+            <div class="feature-list">
+                <h3 style="color: #00ffff;">Key Features:</h3>
+                <ul>
+                    <li><strong>Dynamic Difficulty:</strong> AI adapts to your skill level in real-time</li>
+                    <li><strong>Rubber Band Racing:</strong> Keeps races competitive and exciting</li>
+                    <li><strong>Strategic Power-ups:</strong> Each AI personality uses items differently</li>
+                    <li><strong>Realistic Mistakes:</strong> AI occasionally makes human-like errors</li>
+                    <li><strong>Pack Racing:</strong> AI works together and reacts to each other</li>
+                    <li><strong>Performance Learning:</strong> AI learns and improves over time</li>
+                </ul>
+            </div>
+
+            <button id="startButton" onclick="startAIDemo()">🏁 Start AI Racing Demo</button>
+        </div>
+
+        <div id="ui" class="hidden">
+            <div id="speed">Speed: <span id="speedValue">0</span> km/h</div>
+            <div id="lap">Lap: <span id="lapValue">1</span>/3</div>
+            <div id="position">Position: <span id="positionValue">1</span>/6</div>
+        </div>
+
+        <div id="controls" class="hidden">
+            <div class="title">🏎️ Racing Controls</div>
+
+            <div class="section">
+                <strong>🚗 Car Control:</strong><br>
+                <span class="key">W</span> <span class="key">↑</span> Accelerate |
+                <span class="key">S</span> <span class="key">↓</span> Brake |
+                <span class="key">A</span> <span class="key">←</span> Left |
+                <span class="key">D</span> <span class="key">→</span> Right |
+                <span class="key">Space</span> Handbrake
+            </div>
+
+            <div class="section">
+                <strong>⚡ Power-ups & AI:</strong><br>
+                <span class="key">Q</span> Use Power-up |
+                <span class="key">P</span> AI Difficulty |
+                <span class="key">R</span> Restart Race
+            </div>
+
+            <div class="section">
+                <strong>🎮 Visual Effects:</strong><br>
+                <span class="key">T</span> Weather |
+                <span class="key">V</span> Victory |
+                <span class="key">N</span> Day/Night |
+                <span class="key">U</span> Underglow |
+                <span class="key">C</span> Colors
+            </div>
+
+            <div style="margin-top: 15px;">
+                <div class="highlight">🏆 Current AI Difficulty: <span id="difficultyDisplay">Amateur</span></div>
+                <div style="font-size: 12px; margin-top: 5px; color: #cccccc;">
+                    Watch the leaderboard and AI status panels for real-time information!
+                </div>
+            </div>
+        </div>
+
+        <canvas id="gameCanvas"></canvas>
+    </div>
+
+    <!-- Three.js Local -->
+    <script src="/libs/three.min.js"></script>
+
+    <!-- Cannon.js Physics Engine Local -->
+    <script src="/libs/cannon.min.js"></script>
+
+    <!-- Socket.io for multiplayer -->
+    <script src="/socket.io/socket.io.js"></script>
+
+    <!-- Game Scripts -->
+    <script src="js/visualEffects.js"></script>
+    <script src="js/car.js"></script>
+    <script src="js/track.js"></script>
+    <script src="js/ai-opponent.js"></script>
+    <script src="js/ai-manager.js"></script>
+    <script src="js/power-up-system.js"></script>
+    <script src="js/game.js"></script>
+
+    <script>
+        function startAIDemo() {
+            // Hide info panel and start the game
+            document.getElementById('ai-info').style.display = 'none';
+            document.getElementById('ui').classList.remove('hidden');
+            document.getElementById('controls').classList.remove('hidden');
+
+            // Start the demo with 5 AI opponents
+            console.log('🚀 Starting AI Racing Demo with 5 intelligent opponents!');
+        }
+
+        // Add some demo-specific enhancements
+        window.addEventListener('load', () => {
+            console.log('🤖 AI Racing Demo loaded!');
+            console.log('Features:');
+            console.log('- 5 distinct AI personalities with unique racing styles');
+            console.log('- Dynamic difficulty that adapts to player performance');
+            console.log('- Strategic power-up usage based on AI personality');
+            console.log('- Rubber band mechanics for competitive racing');
+            console.log('- Real-time leaderboard and AI status monitoring');
+        });
+
+        // Override some game settings for demo
+        let originalGame;
+        const originalGameConstructor = window.Game;
+
+        window.Game = function() {
+            originalGame = new originalGameConstructor();
+
+            // Demo-specific settings
+            if (originalGame.gameState) {
+                originalGame.gameState.aiOpponents = 5;
+                originalGame.gameState.difficulty = 'amateur';
+                originalGame.gameState.raceMode = 'ai';
+            }
+
+            return originalGame;
+        };
+
+        // Add difficulty display update
+        document.addEventListener('keydown', (event) => {
+            if (event.code === 'KeyP') {
+                setTimeout(() => {
+                    const difficultyElement = document.getElementById('difficultyDisplay');
+                    if (difficultyElement && originalGame && originalGame.gameState) {
+                        difficultyElement.textContent = originalGame.gameState.difficulty.charAt(0).toUpperCase() +
+                                                      originalGame.gameState.difficulty.slice(1);
+                    }
+                }, 100);
+            }
+        });
+    </script>
+</body>
+</html>

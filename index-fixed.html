@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speed Rivals - 3D Racing Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #gameCanvas {
+            display: block;
+            cursor: crosshair;
+        }
+
+        #ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            font-size: 18px;
+            z-index: 100;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            color: white;
+            background: rgba(0,0,0,0.5);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 14px;
+            z-index: 100;
+        }
+
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 24px;
+            z-index: 200;
+            text-align: center;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        #status {
+            margin-top: 20px;
+            font-size: 16px;
+            color: #88ff88;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="loading">
+            <div>🏎️ Loading Speed Rivals 3D...</div>
+            <div id="status">Initializing libraries...</div>
+        </div>
+
+        <div id="ui" class="hidden">
+            <div id="speed">Speed: <span id="speedValue">0</span> km/h</div>
+            <div id="lap">Lap: <span id="lapValue">1</span>/3</div>
+            <div id="position">Position: <span id="positionValue">1</span>/4</div>
+        </div>
+
+        <div id="controls" class="hidden">
+            <div><strong>Controls:</strong></div>
+            <div>W/↑ - Accelerate</div>
+            <div>S/↓ - Brake/Reverse</div>
+            <div>A/← - Turn Left</div>
+            <div>D/→ - Turn Right</div>
+            <div>Space - Handbrake</div>
+        </div>
+
+        <canvas id="gameCanvas"></canvas>
+    </div>
+
+    <!-- Load libraries -->
+    <script>
+        // Loading status
+        const statusEl = document.getElementById('status');
+
+        function updateStatus(message) {
+            statusEl.textContent = message;
+            console.log('🎮', message);
+        }
+
+        // Load Three.js
+        updateStatus('Loading Three.js...');
+        const script1 = document.createElement('script');
+        script1.src = '/libs/three.min.js';
+        script1.onload = function() {
+            updateStatus('Three.js loaded! Loading physics...');
+
+            // Load Cannon.js
+            const script2 = document.createElement('script');
+            script2.src = '/libs/cannon.min.js';
+            script2.onload = function() {
+                updateStatus('Physics loaded! Creating 3D world...');
+
+                // Start the game
+                setTimeout(initGame, 500);
+            };
+            script2.onerror = function() {
+                updateStatus('❌ Failed to load physics engine');
+            };
+            document.head.appendChild(script2);
+        };
+        script1.onerror = function() {
+            updateStatus('❌ Failed to load Three.js');
+        };
+        document.head.appendChild(script1);
+
+        function initGame() {
+            updateStatus('Starting engines...');
+
+            // Simple 3D scene
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('gameCanvas') });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setClearColor(0x87CEEB);
+
+            // Add lights
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
+            scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(50, 50, 25);
+            scene.add(directionalLight);
+
+            // Create ground
+            const groundGeometry = new THREE.PlaneGeometry(200, 200);
+            const groundMaterial = new THREE.MeshLambertMaterial({ color: 0x4a7c59 });
+            const groundMesh = new THREE.Mesh(groundGeometry, groundMaterial);
+            groundMesh.rotation.x = -Math.PI / 2;
+            scene.add(groundMesh);
+
+            // Create track
+            const trackGeometry = new THREE.RingGeometry(30, 50, 32);
+            const trackMaterial = new THREE.MeshLambertMaterial({ color: 0x333333 });
+            const trackMesh = new THREE.Mesh(trackGeometry, trackMaterial);
+            trackMesh.rotation.x = -Math.PI / 2;
+            trackMesh.position.y = 0.01;
+            scene.add(trackMesh);
+
+            // Create car
+            const carGroup = new THREE.Group();
+
+            // Car body
+            const bodyGeometry = new THREE.BoxGeometry(4, 1.5, 8);
+            const bodyMaterial = new THREE.MeshLambertMaterial({ color: 0xff4444 });
+            const bodyMesh = new THREE.Mesh(bodyGeometry, bodyMaterial);
+            bodyMesh.position.y = 0.75;
+            carGroup.add(bodyMesh);
+
+            // Car wheels
+            const wheelGeometry = new THREE.CylinderGeometry(0.4, 0.4, 0.3, 16);
+            const wheelMaterial = new THREE.MeshLambertMaterial({ color: 0x222222 });
+
+            const wheelPositions = [
+                { x: -1.5, y: 0, z: 2.5 },
+                { x: 1.5, y: 0, z: 2.5 },
+                { x: -1.5, y: 0, z: -2.5 },
+                { x: 1.5, y: 0, z: -2.5 }
+            ];
+
+            wheelPositions.forEach(pos => {
+                const wheelMesh = new THREE.Mesh(wheelGeometry, wheelMaterial);
+                wheelMesh.position.set(pos.x, pos.y, pos.z);
+                wheelMesh.rotation.z = Math.PI / 2;
+                carGroup.add(wheelMesh);
+            });
+
+            carGroup.position.set(0, 1, -35);
+            scene.add(carGroup);
+
+            // Position camera
+            camera.position.set(0, 8, -25);
+            camera.lookAt(carGroup.position);
+
+            // Game state
+            let keys = {};
+            let carSpeed = 0;
+            let carAngle = 0;
+            const maxSpeed = 0.5;
+            const acceleration = 0.02;
+            const turnSpeed = 0.03;
+
+            // Controls
+            window.addEventListener('keydown', (e) => {
+                keys[e.code] = true;
+                if (e.code === 'Space') e.preventDefault();
+            });
+
+            window.addEventListener('keyup', (e) => {
+                keys[e.code] = false;
+            });
+
+            // Update game
+            function updateGame() {
+                // Handle input
+                if (keys['KeyW'] || keys['ArrowUp']) {
+                    carSpeed = Math.min(carSpeed + acceleration, maxSpeed);
+                }
+                if (keys['KeyS'] || keys['ArrowDown']) {
+                    carSpeed = Math.max(carSpeed - acceleration, -maxSpeed/2);
+                }
+                if (keys['KeyA'] || keys['ArrowLeft']) {
+                    carAngle -= turnSpeed * Math.abs(carSpeed);
+                }
+                if (keys['KeyD'] || keys['ArrowRight']) {
+                    carAngle += turnSpeed * Math.abs(carSpeed);
+                }
+                if (keys['Space']) {
+                    carSpeed *= 0.9; // Handbrake
+                }
+
+                // Apply friction
+                carSpeed *= 0.98;
+
+                // Update car position
+                carGroup.position.x += Math.sin(carAngle) * carSpeed;
+                carGroup.position.z += Math.cos(carAngle) * carSpeed;
+                carGroup.rotation.y = carAngle;
+
+                // Update camera to follow car
+                const cameraDistance = 15;
+                const cameraHeight = 8;
+                const targetX = carGroup.position.x - Math.sin(carAngle) * cameraDistance;
+                const targetZ = carGroup.position.z - Math.cos(carAngle) * cameraDistance;
+
+                camera.position.lerp(
+                    new THREE.Vector3(targetX, carGroup.position.y + cameraHeight, targetZ),
+                    0.1
+                );
+                camera.lookAt(carGroup.position.x, carGroup.position.y + 2, carGroup.position.z);
+
+                // Update UI
+                document.getElementById('speedValue').textContent = Math.round(Math.abs(carSpeed) * 100);
+
+                // Render
+                renderer.render(scene, camera);
+                requestAnimationFrame(updateGame);
+            }
+
+            // Start game
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('ui').classList.remove('hidden');
+            document.getElementById('controls').classList.remove('hidden');
+
+            updateGame();
+            updateStatus('🏁 Game started! Use WASD to drive!');
+        }
+
+        // Handle resize
+        window.addEventListener('resize', () => {
+            if (window.camera && window.renderer) {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speed Rivals - 3D Racing Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #gameCanvas {
+            display: block;
+            cursor: crosshair;
+        }
+
+        #ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            font-size: 18px;
+            z-index: 100;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            color: white;
+            background: rgba(0,0,0,0.5);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 14px;
+            z-index: 100;
+        }
+
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 24px;
+            z-index: 200;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="loading">Loading Speed Rivals...</div>
+
+        <div id="ui" class="hidden">
+            <div id="speed">Speed: <span id="speedValue">0</span> km/h</div>
+            <div id="lap">Lap: <span id="lapValue">1</span>/3</div>
+            <div id="position">Position: <span id="positionValue">1</span>/4</div>
+        </div>
+
+        <div id="controls" class="hidden">
+            <div><strong>Controls:</strong></div>
+            <div>W/↑ - Accelerate</div>
+            <div>S/↓ - Brake/Reverse</div>
+            <div>A/← - Turn Left</div>
+            <div>D/→ - Turn Right</div>
+            <div>Space - Handbrake</div>
+            <div style="margin-top: 10px;"><strong>Effects:</strong></div>
+            <div>T - Toggle Weather</div>
+            <div>V - Victory Effects</div>
+            <div>N - Day/Night Cycle</div>
+            <div>U - Toggle Underglow</div>
+            <div>C - Change Underglow Color</div>
+            <div style="margin-top: 10px;"><strong>AI Racing:</strong></div>
+            <div>Q - Use Power-up</div>
+            <div>P - Change AI Difficulty</div>
+            <div>R - Start/Restart Race</div>
+        </div>
+
+        <canvas id="gameCanvas"></canvas>
+    </div>
+
+    <!-- Three.js r160 - Deprecation warning is expected for UMD builds -->
+    <!-- Future: Convert to ES modules for cleaner imports -->
+    <script src="/libs/three.min.js"></script>
+
+    <!-- Cannon.js Physics Engine Local -->
+    <script src="/libs/cannon.min.js"></script>
+
+    <!-- Socket.io for multiplayer -->
+    <script src="/socket.io/socket.io.js"></script>
+
+    <!-- Error Handler (load first) -->
+    <script src="js/error-handler.js"></script>
+
+    <!-- Game Scripts - Load in correct order -->
+    <script>
+        // Simple loader to hide loading screen once game starts
+        window.addEventListener('load', () => {
+            // Check if THREE and CANNON loaded
+            if (typeof THREE === 'undefined') {
+                document.getElementById('loading').innerHTML = '❌ Error: Three.js failed to load<br><a href="/test">Go to Test Page</a>';
+                console.error('Three.js not loaded');
+                return;
+            }
+            if (typeof CANNON === 'undefined') {
+                document.getElementById('loading').innerHTML = '❌ Error: Cannon.js failed to load<br><a href="/test">Go to Test Page</a>';
+                console.error('Cannon.js not loaded');
+                return;
+            }
+            console.log('✅ Libraries loaded successfully');
+        });
+    </script>
+    
+    <script src="js/visualEffects.js"></script>
+    <script src="js/car.js"></script>
+    <script src="js/track.js"></script>
+    <script src="js/ai-opponent.js"></script>
+    <script src="js/ai-manager.js"></script>
+    <script src="js/power-up-system.js"></script>
+    <script src="js/game.js"></script>
+    
+    <script>
+        // Auto-start the game with detailed error tracking
+        window.addEventListener('load', () => {
+            console.log('🏎️ Page loaded, checking dependencies...');
+            
+            // Check dependencies
+            if (typeof THREE === 'undefined') {
+                document.getElementById('loading').innerHTML = 
+                    '❌ Error: Three.js library failed to load<br><a href="/test">Test Libraries</a>';
+                console.error('THREE is undefined');
+                return;
+            }
+            
+            if (typeof CANNON === 'undefined') {
+                document.getElementById('loading').innerHTML = 
+                    '❌ Error: Cannon.js library failed to load<br><a href="/test">Test Libraries</a>';
+                console.error('CANNON is undefined');
+                return;
+            }
+            
+            if (typeof Car === 'undefined') {
+                document.getElementById('loading').innerHTML = 
+                    '❌ Error: Car class not loaded<br>Check js/car.js';
+                console.error('Car class is undefined');
+                return;
+            }
+            
+            if (typeof Track === 'undefined') {
+                document.getElementById('loading').innerHTML = 
+                    '❌ Error: Track class not loaded<br>Check js/track.js';
+                console.error('Track class is undefined');
+                return;
+            }
+            
+            console.log('✅ All dependencies loaded');
+            console.log('✅ THREE version:', THREE.REVISION);
+            console.log('✅ Car class available');
+            console.log('✅ Track class available');
+            
+            // Try to start the game
+            try {
+                console.log('🏎️ Starting Speed Rivals...');
+                const game = new Game();
+                console.log('✅ Game instance created successfully');
+                
+                // Force hide loading screen after 3 seconds if game hasn't done it
+                setTimeout(() => {
+                    const loading = document.getElementById('loading');
+                    if (loading && !loading.classList.contains('hidden')) {
+                        console.warn('⚠️ Loading screen still visible, forcing hide...');
+                        loading.classList.add('hidden');
+                        document.getElementById('ui').classList.remove('hidden');
+                        document.getElementById('controls').classList.remove('hidden');
+                    }
+                }, 3000);
+                
+            } catch (error) {
+                console.error('❌ Game initialization failed:', error);
+                console.error('Stack trace:', error.stack);
+                document.getElementById('loading').innerHTML = 
+                    `❌ Error: ${error.message}<br><small>${error.stack ? error.stack.split('\n')[1] : ''}</small><br><a href="/hub">Back to Hub</a>`;
+            }
+        });
+    </script>
+</body>
+</html>

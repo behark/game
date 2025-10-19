@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug - Speed Rivals</title>
+    <style>
+        body {
+            background: #1a1a2e;
+            color: #eee;
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #27ae60; color: white; }
+        .error { background: #e74c3c; color: white; }
+        .info { background: #3498db; color: white; }
+        .warning { background: #f39c12; color: white; }
+        #console { 
+            background: #0f0f0f; 
+            padding: 15px; 
+            margin-top: 20px; 
+            border-radius: 5px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-size: 12px;
+        }
+        .log-entry { margin: 5px 0; }
+        .log-error { color: #ff6b6b; }
+        .log-warn { color: #ffd93d; }
+        .log-info { color: #6bcfff; }
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        button:hover { background: #2980b9; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Speed Rivals - Debug Console</h1>
+    
+    <div id="status-container"></div>
+    
+    <div>
+        <button onclick="checkLibraries()">Check Libraries</button>
+        <button onclick="checkGameClasses()">Check Game Classes</button>
+        <button onclick="tryInitGame()">Try Initialize Game</button>
+        <button onclick="location.href='/'">Go to Main Game</button>
+        <button onclick="location.href='/hub'">Go to Hub</button>
+    </div>
+    
+    <div id="console">
+        <div class="log-info">Console output will appear here...</div>
+    </div>
+
+    <!-- Load same libraries as main game -->
+    <script src="/libs/three.min.js"></script>
+    <script src="/libs/cannon.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    
+    <script>
+        const consoleDiv = document.getElementById('console');
+        const statusContainer = document.getElementById('status-container');
+        
+        // Intercept console methods
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        
+        function addToConsole(message, type = 'info') {
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.textContent = new Date().toLocaleTimeString() + ' - ' + message;
+            consoleDiv.appendChild(entry);
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        }
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            addToConsole(args.join(' '), 'info');
+        };
+        
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            addToConsole(args.join(' '), 'error');
+        };
+        
+        console.warn = function(...args) {
+            originalWarn.apply(console, args);
+            addToConsole(args.join(' '), 'warn');
+        };
+        
+        function addStatus(message, type) {
+            const status = document.createElement('div');
+            status.className = `status ${type}`;
+            status.textContent = message;
+            statusContainer.appendChild(status);
+        }
+        
+        function checkLibraries() {
+            statusContainer.innerHTML = '';
+            console.log('Checking libraries...');
+            
+            if (typeof THREE !== 'undefined') {
+                addStatus('✅ THREE.js loaded - version r' + THREE.REVISION, 'success');
+                console.log('THREE.js version:', THREE.REVISION);
+            } else {
+                addStatus('❌ THREE.js NOT loaded', 'error');
+                console.error('THREE.js not found');
+            }
+            
+            if (typeof CANNON !== 'undefined') {
+                addStatus('✅ CANNON.js loaded', 'success');
+                console.log('CANNON.js loaded successfully');
+            } else {
+                addStatus('❌ CANNON.js NOT loaded', 'error');
+                console.error('CANNON.js not found');
+            }
+            
+            if (typeof io !== 'undefined') {
+                addStatus('✅ Socket.io loaded', 'success');
+                console.log('Socket.io loaded successfully');
+            } else {
+                addStatus('⚠️ Socket.io NOT loaded (optional)', 'warning');
+                console.warn('Socket.io not found (optional for single player)');
+            }
+        }
+        
+        function checkGameClasses() {
+            statusContainer.innerHTML = '';
+            console.log('Checking game classes...');
+            
+            // Try to load game scripts dynamically
+            const scripts = [
+                '/js/car.js',
+                '/js/track.js',
+                '/js/visualEffects.js',
+                '/js/ai-opponent.js',
+                '/js/ai-manager.js',
+                '/js/power-up-system.js',
+                '/js/game.js'
+            ];
+            
+            let loaded = 0;
+            scripts.forEach(src => {
+                const script = document.createElement('script');
+                script.src = src;
+                script.onload = () => {
+                    loaded++;
+                    addStatus(`✅ Loaded: ${src}`, 'success');
+                    console.log('Loaded:', src);
+                    
+                    if (loaded === scripts.length) {
+                        setTimeout(() => {
+                            checkClasses();
+                        }, 500);
+                    }
+                };
+                script.onerror = () => {
+                    addStatus(`❌ Failed to load: ${src}`, 'error');
+                    console.error('Failed to load:', src);
+                };
+                document.body.appendChild(script);
+            });
+        }
+        
+        function checkClasses() {
+            if (typeof Car !== 'undefined') {
+                addStatus('✅ Car class available', 'success');
+            } else {
+                addStatus('❌ Car class NOT available', 'error');
+            }
+            
+            if (typeof Track !== 'undefined') {
+                addStatus('✅ Track class available', 'success');
+            } else {
+                addStatus('❌ Track class NOT available', 'error');
+            }
+            
+            if (typeof Game !== 'undefined') {
+                addStatus('✅ Game class available', 'success');
+            } else {
+                addStatus('❌ Game class NOT available', 'error');
+            }
+            
+            if (typeof VisualEffectsEngine !== 'undefined') {
+                addStatus('✅ VisualEffectsEngine class available', 'success');
+            } else {
+                addStatus('⚠️ VisualEffectsEngine class NOT available', 'warning');
+            }
+        }
+        
+        function tryInitGame() {
+            console.log('Attempting to initialize game...');
+            statusContainer.innerHTML = '';
+            
+            if (typeof Game === 'undefined') {
+                addStatus('❌ Game class not loaded. Click "Check Game Classes" first.', 'error');
+                return;
+            }
+            
+            try {
+                console.log('Creating game instance...');
+                const game = new Game();
+                addStatus('✅ Game instance created successfully!', 'success');
+                console.log('Game initialized:', game);
+            } catch (error) {
+                addStatus('❌ Game initialization failed: ' + error.message, 'error');
+                console.error('Error details:', error);
+                console.error('Stack:', error.stack);
+            }
+        }
+        
+        // Auto-check on load
+        window.addEventListener('load', () => {
+            console.log('Debug page loaded');
+            checkLibraries();
+        });
+    </script>
+</body>
+</html>

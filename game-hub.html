@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speed Rivals - Game Hub</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            font-family: 'Arial', sans-serif;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .header h1 {
+            font-size: 4em;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.8);
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.3em;
+            opacity: 0.9;
+        }
+
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        .game-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+
+        .game-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .game-card h2 {
+            font-size: 2em;
+            margin-bottom: 15px;
+            color: #fff;
+        }
+
+        .game-card .description {
+            font-size: 1.1em;
+            margin-bottom: 20px;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        .game-card .features {
+            text-align: left;
+            margin-bottom: 25px;
+        }
+
+        .game-card .features li {
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+
+        .play-button {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            color: white;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .play-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 25px rgba(255,107,107,0.4);
+        }
+
+        .multiplayer .play-button {
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+        }
+
+        .multiplayer .play-button:hover {
+            box-shadow: 0 10px 25px rgba(46,204,113,0.4);
+        }
+
+        .mobile-featured {
+            background: linear-gradient(135deg, rgba(255,107,107,0.15), rgba(238,90,36,0.15));
+            border: 2px solid rgba(255,107,107,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mobile-featured::before {
+            content: "🔥 FEATURED";
+            position: absolute;
+            top: 10px;
+            right: -30px;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 5px 40px;
+            font-size: 12px;
+            font-weight: bold;
+            transform: rotate(45deg);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .mobile-featured .play-button {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { box-shadow: 0 10px 25px rgba(255,107,107,0.4); }
+            to { box-shadow: 0 15px 35px rgba(255,107,107,0.6); }
+        }
+
+        .status-bar {
+            background: rgba(0,0,0,0.3);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-online { background: #2ecc71; }
+        .status-offline { background: #e74c3c; }
+
+        .features-section {
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .feature-item {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .feature-item h3 {
+            margin-bottom: 10px;
+            color: #ffd700;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            opacity: 0.7;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5em;
+            }
+
+            .game-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏎️ Speed Rivals</h1>
+            <p>The Ultimate 3D Racing Experience</p>
+        </div>
+
+        <div class="status-bar">
+            <span class="status-indicator status-online"></span>
+            <strong>Server Status: Online</strong> |
+            <span id="playerCount">Loading...</span> players online
+        </div>
+
+        <div class="game-grid">
+            <div class="game-card mobile-featured" onclick="window.open('/mobile-racing', '_blank')">
+                <h2>📱 Mobile Racing Pro</h2>
+                <div class="description">
+                    Professional mobile racing with advanced touch controls, PWA support, and offline gameplay.
+                </div>
+                <ul class="features">
+                    <li>🎮 Advanced touch controls</li>
+                    <li>📱 Install as native app</li>
+                    <li>🌐 Play offline anywhere</li>
+                    <li>📳 Haptic feedback</li>
+                    <li>🎯 Gesture power-ups</li>
+                    <li>⚡ Auto performance scaling</li>
+                </ul>
+                <a href="/mobile-racing" class="play-button">Play Mobile Pro</a>
+            </div>
+
+            <div class="game-card" onclick="window.open('/simple', '_blank')">
+                <h2>🎨 Classic 2D Racing</h2>
+                <div class="description">
+                    Fast-loading top-down racing with instant action and smooth 60 FPS gameplay.
+                </div>
+                <ul class="features">
+                    <li>✅ Instant loading (no dependencies)</li>
+                    <li>✅ Smooth 60 FPS performance</li>
+                    <li>✅ Detailed car with lights</li>
+                    <li>✅ Oval track with markings</li>
+                    <li>✅ Real-time speed display</li>
+                </ul>
+                <a href="/simple" class="play-button">Play 2D Racing</a>
+            </div>
+
+            <div class="game-card" onclick="window.open('/3d-working', '_blank')">
+                <h2>🏎️ 3D Racing Experience</h2>
+                <div class="description">
+                    Beautiful 3D graphics with realistic car models and immersive follow camera.
+                </div>
+                <ul class="features">
+                    <li>✅ Stunning 3D graphics</li>
+                    <li>✅ Detailed car models</li>
+                    <li>✅ Follow camera system</li>
+                    <li>✅ Professional lighting</li>
+                    <li>✅ Ring racing track</li>
+                </ul>
+                <a href="/3d-working" class="play-button">Play 3D Racing</a>
+            </div>
+
+            <div class="game-card multiplayer" onclick="window.open('/multiplayer', '_blank')">
+                <h2>🌐 Multiplayer Racing</h2>
+                <div class="description">
+                    Race against real players in real-time with live chat and leaderboards!
+                </div>
+                <ul class="features">
+                    <li>🔥 Real-time multiplayer</li>
+                    <li>🔥 Live chat system</li>
+                    <li>🔥 Dynamic leaderboards</li>
+                    <li>🔥 Lap timing & tracking</li>
+                    <li>🔥 Up to 4 players per room</li>
+                </ul>
+                <a href="/multiplayer" class="play-button">Join Multiplayer</a>
+            </div>
+
+            <div class="game-card" onclick="window.open('/test', '_blank')">
+                <h2>🔍 Game Diagnostics</h2>
+                <div class="description">
+                    Test system compatibility and troubleshoot any loading issues.
+                </div>
+                <ul class="features">
+                    <li>🔧 Library loading tests</li>
+                    <li>🔧 Connection diagnostics</li>
+                    <li>🔧 Performance metrics</li>
+                    <li>🔧 Browser compatibility</li>
+                    <li>🔧 Error reporting</li>
+                </ul>
+                <a href="/test" class="play-button">Run Diagnostics</a>
+            </div>
+        </div>
+
+        <div class="features-section">
+            <h2 style="text-align: center; margin-bottom: 20px;">🎮 Game Features</h2>
+            <div class="features-grid">
+                <div class="feature-item">
+                    <h3>🏁 Professional Racing</h3>
+                    <p>Realistic car physics with acceleration, braking, and steering that feels authentic.</p>
+                </div>
+                <div class="feature-item">
+                    <h3>🎯 Multiple Modes</h3>
+                    <p>Choose from 2D classic, 3D immersive, or multiplayer competitive racing.</p>
+                </div>
+                <div class="feature-item">
+                    <h3>🌟 Beautiful Graphics</h3>
+                    <p>Stunning visuals with proper lighting, shadows, and detailed car models.</p>
+                </div>
+                <div class="feature-item">
+                    <h3>⚡ High Performance</h3>
+                    <p>Optimized for smooth 60 FPS gameplay on all modern devices.</p>
+                </div>
+                <div class="feature-item">
+                    <h3>💬 Social Features</h3>
+                    <p>Real-time chat, leaderboards, and competitive multiplayer racing.</p>
+                </div>
+                <div class="feature-item">
+                    <h3>📱 Cross-Platform</h3>
+                    <p>Works seamlessly across desktop, mobile, and tablet devices.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Built with Three.js, Socket.io & Node.js | Speed Rivals © 2025</p>
+            <p>🎮 Ready to race? Choose your game mode above!</p>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // Connect to server to get player count
+        const socket = io();
+
+        socket.on('connect', () => {
+            console.log('Connected to server for stats');
+        });
+
+        // Update player count (you could emit a request for current stats)
+        document.getElementById('playerCount').textContent = '1+';
+
+        // Add some interactive effects
+        document.querySelectorAll('.game-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.background = 'rgba(255,255,255,0.15)';
+            });
+
+            card.addEventListener('mouseleave', () => {
+                card.style.background = 'rgba(255,255,255,0.1)';
+            });
+        });
+    </script>
+</body>
+</html>

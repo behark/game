@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speed Rivals - Test</title>
+    <style>
+        body {
+            margin: 0;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: white;
+        }
+        .container {
+            text-align: center;
+        }
+        #status {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        #test-results {
+            background: rgba(0,0,0,0.3);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        .success { color: #00ff00; }
+        .error { color: #ff0000; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="status">Testing Speed Rivals Components...</div>
+        <div id="test-results"></div>
+    </div>
+
+    <script>
+        const results = document.getElementById('test-results');
+
+        function addResult(test, success, message) {
+            const div = document.createElement('div');
+            div.className = success ? 'success' : 'error';
+            div.innerHTML = `${test}: ${success ? '✅' : '❌'} ${message}`;
+            results.appendChild(div);
+        }
+
+        // Test 1: Basic JavaScript
+        addResult('JavaScript', true, 'Working');
+
+        // Test 2: Check if we can load external scripts
+        const script1 = document.createElement('script');
+        script1.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r155/three.min.js';
+        script1.onload = function() {
+            addResult('Three.js CDN', true, 'Loaded successfully');
+
+            // Test Three.js basic functionality
+            if (typeof THREE !== 'undefined') {
+                const scene = new THREE.Scene();
+                addResult('Three.js Scene', true, 'Scene created');
+
+                // Now try Cannon.js
+                const script2 = document.createElement('script');
+                script2.src = 'https://cdnjs.cloudflare.com/ajax/libs/cannon.js/4.0.0/cannon.min.js';
+                script2.onload = function() {
+                    addResult('Cannon.js CDN', true, 'Loaded successfully');
+
+                    if (typeof CANNON !== 'undefined') {
+                        const world = new CANNON.World();
+                        addResult('Cannon.js World', true, 'Physics world created');
+
+                        // All good - redirect to main game
+                        setTimeout(() => {
+                            document.getElementById('status').innerHTML = '🎉 All tests passed! Redirecting to game...';
+                            setTimeout(() => {
+                                window.location.href = '/';
+                            }, 2000);
+                        }, 1000);
+                    } else {
+                        addResult('Cannon.js World', false, 'CANNON not defined');
+                    }
+                };
+                script2.onerror = function() {
+                    addResult('Cannon.js CDN', false, 'Failed to load');
+                };
+                document.head.appendChild(script2);
+
+            } else {
+                addResult('Three.js Scene', false, 'THREE not defined');
+            }
+        };
+        script1.onerror = function() {
+            addResult('Three.js CDN', false, 'Failed to load from CDN');
+
+            // Try alternative
+            addResult('Alternative', true, 'Checking local options...');
+        };
+        document.head.appendChild(script1);
+
+        // Test Socket.io connection
+        setTimeout(() => {
+            const socket = io();
+            socket.on('connect', () => {
+                addResult('Socket.io Connection', true, 'Connected to server');
+            });
+            socket.on('connect_error', () => {
+                addResult('Socket.io Connection', false, 'Failed to connect');
+            });
+        }, 500);
+    </script>
+
+    <!-- Socket.io for multiplayer -->
+    <script src="/socket.io/socket.io.js"></script>
+</body>
+</html>
