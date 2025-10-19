@@ -40,7 +40,8 @@ global.isMongoDBConnected = false;
 // Database connection (optional - game works without it)
 const connectDB = async () => {
   try {
-    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/speed-rivals', {
+    const dbURI = process.env.NODE_ENV === 'production' ? process.env.MONGODB_URI_PROD : process.env.MONGODB_URI;
+    await mongoose.connect(dbURI || 'mongodb://localhost:27017/speed-rivals', {
       serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
       connectTimeoutMS: 5000
     });
